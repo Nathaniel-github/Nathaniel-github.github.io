@@ -1,30 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>What if we had America.json</title>
-<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
-<style>
-body { margin: 0; padding: 0; }
-#map { position: absolute; top: 0; bottom: 0; width: 100%; }
-</style>
-</head>
-<body>
+import React from 'react';
+import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 
-<div id="map"></div>
+mapboxgl.accessToken = 'pk.eyJ1IjoibnRob21hczA4MCIsImEiOiJja3hmaG85OXcwNGxuMndtYXIyMmZ4a3RvIn0.8D8wEzr8RPis8iw06_AFCA';
 
-<script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoibnRob21hczA4MCIsImEiOiJja3hmaG85OXcwNGxuMndtYXIyMmZ4a3RvIn0.8D8wEzr8RPis8iw06_AFCA';
+export default class App extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      lng: -98,
+      lat:  38.88,
+      zoom: 3
+    };
+    this.mapContainer = React.createRef();
+  }
+  componentDidMount() {
+    const { lng, lat, zoom } = this.state;
     const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/light-v10',
-        center: [-98, 38.88],
-        zoom: 3
+      container: this.mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [lng, lat],
+      zoom: zoom
     });
 
-    map.on('load', () => {
+    map.on('move', () => {
+      this.setState({
+        lng: map.getCenter().lng.toFixed(4),
+        lat: map.getCenter().lat.toFixed(4),
+        zoom: map.getZoom().toFixed(2)
+      });
+    });
+
+        map.on('load', () => {
         map.addSource('block-groups', {
             'type': 'vector',
             'url': 'mapbox://nthomas080.5pbq698c'
@@ -50,7 +56,7 @@ body { margin: 0; padding: 0; }
                 'id': 'block-groups',
                 'source': 'block-groups',
                 'source-layer': 'cb_2019_us_bg_500k-c6i5za',
-                'minzoom': 10,
+                'minzoom': 8,
                 'type': 'fill',
                 'layout': {},
                 'paint': {
@@ -59,13 +65,13 @@ body { margin: 0; padding: 0; }
                 }
             }
         );
-        
+
         map.addLayer(
             {
                 'id': 'tracts',
                 'source': 'tracts',
                 'source-layer': 'cb_2019_us_tract_500k-4s31ti',
-                'minzoom': 8,
+                'minzoom': 6,
                 'type': 'fill',
                 'layout': {},
                 'paint': {
@@ -80,7 +86,7 @@ body { margin: 0; padding: 0; }
                 'id': 'counties',
                 'source': 'counties',
                 'source-layer': 'cb_2019_us_county_500k-b4tpx7',
-                'minzoom': 6,
+                'minzoom': 4,
                 'type': 'fill',
                 'layout': {},
                 'paint': {
@@ -89,7 +95,7 @@ body { margin: 0; padding: 0; }
                 }
             }
         );
-        
+
         map.addLayer(
             {
                 'id': 'states',
@@ -103,13 +109,13 @@ body { margin: 0; padding: 0; }
                 }
             }
         );
-        
+
         map.addLayer(
             {
                 'id': 'block-group-outline',
                 'source': 'block-groups',
                 'source-layer': 'cb_2019_us_bg_500k-c6i5za',
-                'minzoom': 10,
+                'minzoom': 8,
                 'type': 'line',
                 'layout': {},
                 'paint': {
@@ -118,13 +124,13 @@ body { margin: 0; padding: 0; }
                 }
             }
         );
-        
+
         map.addLayer(
             {
                 'id': 'tract-outline',
                 'source': 'tracts',
                 'source-layer': 'cb_2019_us_tract_500k-4s31ti',
-                'minzoom': 8,
+                'minzoom': 6,
                 'type': 'line',
                 'layout': {},
                 'paint': {
@@ -148,7 +154,7 @@ body { margin: 0; padding: 0; }
                 }
             }
         );
-        
+
         map.addLayer(
             {
                 'id': 'state-outline',
@@ -162,10 +168,19 @@ body { margin: 0; padding: 0; }
                 }
             }
         );
-        
+
     });
 
-</script>
-
-</body>
-</html>
+  }
+  render() {
+    const { lng, lat, zoom } = this.state;
+    return (
+      <div>
+        <div className="sidebar">
+          Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+        </div>
+        <div ref={this.mapContainer} className="map-container" />
+      </div>
+    );
+  }
+}
